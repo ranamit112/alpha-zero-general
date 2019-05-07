@@ -1,10 +1,12 @@
 from Coach import Coach
-from othello.OthelloGame import OthelloGame as Game
-from othello.pytorch.NNet import NNetWrapper as nn
+#from othello.OthelloGame import OthelloGame as Game
+#from othello.pytorch.NNet import NNetWrapper as nn
+from vikingdoms.VikingdomsGame import VikingdomsGame as Game
+from vikingdoms.keras.NNet import NNetWrapper as nn
 from utils import *
 
 args = dotdict({
-    'numIters': 1000,
+    'numIters': 100,
     'numEps': 100,
     'tempThreshold': 15,
     'updateThreshold': 0.6,

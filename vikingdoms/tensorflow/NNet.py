@@ -11,7 +11,7 @@ from pytorch_classification.utils import Bar, AverageMeter
 from NeuralNet import NeuralNet
 
 import tensorflow as tf
-from .GobangNNet import GobangNNet as onnet
+from .VikingdomsNNet import VikingdomsNNet as onnet
 
 args = dotdict({
     'lr': 0.001,

@@ -12,14 +12,14 @@ from utils import *
 from NeuralNet import NeuralNet
 
 import argparse
-from .GobangNNet import GobangNNet as onnet
+from .VikingdomsNNet import VikingdomsNNet as onnet
 
 args = dotdict({
     'lr': 0.001,
     'dropout': 0.3,
     'epochs': 10,
     'batch_size': 64,
-    'cuda': True,
+    'cuda': False,
     'num_channels': 512,
 })
 
@@ -27,7 +27,7 @@ args = dotdict({
 
 class NNetWrapper(NeuralNet):
     def __init__(self, game):
-        self.graph = tf.get_default_graph()
+        #self.graph = tf.get_default_graph()
         self.nnet = onnet(game, args)
         self.board_x, self.board_y = game.getBoardSize()
         self.action_size = game.getActionSize()
@@ -51,10 +51,11 @@ class NNetWrapper(NeuralNet):
 
         # preparing input
         board = board[np.newaxis, :, :]
-        with self.graph.as_default():
-            # run
-            self.nnet.model._make_predict_function()
-            pi, v = self.nnet.model.predict(board)
+        #with self.graph.as_default():
+        #    # run
+        #    self.nnet.model._make_predict_function()
+        #    pi, v = self.nnet.model.predict(board)
+        pi, v = self.nnet.model.predict(board)
 
         #print('PREDICTION TIME TAKEN : {0:03f}'.format(time.time()-start))
         return pi[0], v[0]
