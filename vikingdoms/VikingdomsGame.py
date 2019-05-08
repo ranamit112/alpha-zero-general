@@ -27,14 +27,12 @@ class VikingdomsGame(Game):
         # (a,b) tuple
         return BoardNumpyUtil.board_shape_numpy(self.n)
 
-    def getActionSize(self):
-        # type: () -> int
+    def getActionSize(self) -> int:
         # return number of actions
         # adding piece to board, move tower part from one point of board to another times height, skip
         return (self.n * self.n) + (self.n * self.n)*(self.n * self.n)*(Board.WIN_TOWER-1) + 1
 
-    def getNextState(self, board, player, action):
-        # type: (np.ndarray, int, int) -> (np.ndarray, int)
+    def getNextState(self, board : np.ndarray, player : int, action : int) -> (np.ndarray, int):
         # if player takes action on board, return next (board,player)
         # action must be a valid move
         assert action <= self.getActionSize()-1
@@ -47,7 +45,7 @@ class VikingdomsGame(Game):
         return (BoardNumpyUtil.board_to_numpy(b), 1 - player)
 
     # modified
-    def getValidMoves(self, board, player):
+    def getValidMoves(self, board: np.ndarray, player: int) -> np.ndarray:
         # return a fixed size binary vector
         b = BoardNumpyUtil.board_from_numpy(board)
         valids = [0] * self.getActionSize()
@@ -61,8 +59,7 @@ class VikingdomsGame(Game):
         return np.array(valids)
 
     # modified
-    def getGameEnded(self, board, player):
-        # type: (np.ndarray, int) -> int or float
+    def getGameEnded(self, board: np.ndarray, player: int) -> int or float:
         # return 0 if not ended, 1 if player 1 won, -1 if player 1 lost
         # player = 1
         b = BoardNumpyUtil.board_from_numpy(board)
@@ -74,13 +71,12 @@ class VikingdomsGame(Game):
             return 0
         return 1e-4  # TODO: I don't understand this
 
-    def getCanonicalForm(self, board, player):
-        # type: (np.ndarray, int) -> np.ndarray
+    def getCanonicalForm(self, board: np.ndarray, player: int) -> np.ndarray:
         # return state if player==1, else return -state if player==-1
         return BoardNumpyUtil.get_canonical_board(self.n, board, player)
 
     # modified
-    def getSymmetries(self, board, pi):
+    def getSymmetries(self, board: np.ndarray, pi: np.ndarray) -> list:
         # mirror, rotational
         assert(len(pi) == self.getActionSize())  # -1 for pass
 
@@ -106,6 +102,6 @@ class VikingdomsGame(Game):
                 l += [(newB, list(newPi1.ravel()) + list(newPi2.ravel()) + [pi_skip])]
         return l
 
-    def stringRepresentation(self, board):
+    def stringRepresentation(self, board: np.ndarray) -> bytes:
         # 5x4 (or n+1 * n) numpy array (canonical board)
         return board.tostring()

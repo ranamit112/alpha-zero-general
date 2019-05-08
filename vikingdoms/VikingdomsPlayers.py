@@ -17,8 +17,7 @@ class RandomPlayer():
 
 
 class HumanVikingdomsPlayer():
-    def __init__(self, game):
-        # type: (Game) -> None
+    def __init__(self, game: Game):
         self.game = game
 
     def play(self, board):
@@ -68,8 +67,7 @@ class GreedyVikingdomsPlayer():
         candidates.sort()
         return candidates[0][1]
 
-    def getScore(self, board, color):
-        # type: (np.ndarray, int) -> int
+    def getScore(self, board: np.ndarray, color: int) -> int:
         K1 = 1
         K2 = 1
         s = 0

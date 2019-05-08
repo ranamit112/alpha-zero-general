@@ -21,51 +21,46 @@ class Board():
     Move data - tuple of (number_of_pieces, from_position, to_position)
     """
     WIN_TOWER = 6
-    START_PIECES = 24
 
     def __init__(self, n):
         """Set up initial board configuration."""
 
         self.n = n
+        self.start_pieces = n * ((n//2)+1)  # 12 for 4*4, 15 for 5*5
         # Create the empty board array.
         self.position = [None] * self.n
         for i in range(self.n):
             self.position[i] = [0] * self.n
-        self.pieces_left = [self.START_PIECES]*2
+        self.pieces_left = [self.start_pieces] * 2
 
     # add [][] indexer syntax to the Board
     def __getitem__(self, index): 
         return self.position[index]
 
-    def get_height_of_tower(self, x, y):
-        # type: (int, int) -> int
-        v = int(self.position[x][y])
+    def get_height_of_tower(self, x: int, y: int) -> int:
+        v = self.position[x][y]
         return self.get_height_of_tower_val(v)
 
     @staticmethod
-    def get_height_of_tower_val(v):
-        # type: (int) -> int
+    def get_height_of_tower_val(v: int) -> int:
         h = 0
         while v != 0 and v != 1:
             v = v >> 1
             h += 1
         return h
 
-    def get_top_piece_player(self, x, y):
-        # type: (int, int) -> int
+    def get_top_piece_player(self, x: int, y: int) -> int:
         v = int(self.position[x][y])
         return self.get_top_piece_player_val(v)
 
     @staticmethod
-    def get_top_piece_player_val(v):
-        # type: (int) -> int
+    def get_top_piece_player_val(v: int) -> int:
         if v == 0:
             return 0
         h = Board.get_height_of_tower_val(v)
         return 1 if ((v >> (h - 1)) & 1) == 1 else -1
 
-    def _is_free_straight(self, x, y, x2, y2):
-        # type: (int, int, int, int) -> bool
+    def _is_free_straight(self, x: int, y: int, x2: int, y2: int) -> bool:
         if x > x2:
             for x0 in range(x - 1, x2, -1):
                 if self.position[x0][y] != 0:
@@ -84,8 +79,7 @@ class Board():
                     return False
         return True
 
-    def _is_legal_move_straight(self, x, y, x2, y2):
-        # type: (int, int, int, int) -> bool
+    def _is_legal_move_straight(self, x: int, y: int, x2: int, y2: int) -> bool:
         if not (((y == y2) and (x != x2)) or
                 ((x == x2) and (y != y2))):
             return False
@@ -104,11 +98,10 @@ class Board():
                     return False
         return True
 
-    def _is_legal_move_diag(self, x, y, x2, y2):
-        # type: (int, int, int, int) -> bool
+    def _is_legal_move_diag(self, x: int, y: int, x2: int, y2: int) -> bool:
         xd = x - x2
         yd = y - y2
-        if abs(xd) != abs(yd):
+        if xd == 0 or abs(xd) != abs(yd):
             return False
         xdp = 1 if x2 > x else -1
         ydp = 1 if y2 > y else -1
@@ -118,8 +111,7 @@ class Board():
                 return False
         return True
 
-    def _is_legal_move_knight(self, x, y, x2, y2):
-        # type: (int, int, int, int) -> bool
+    def _is_legal_move_knight(self, x: int, y: int, x2: int, y2: int) -> bool:
         xd = x - x2
         yd = y - y2
         if (
@@ -129,8 +121,7 @@ class Board():
             return False
         return True
 
-    def _is_legal_piece_move(self, x, y, x2, y2, h):
-        # type: (int, int, int, int, int) -> bool
+    def _is_legal_piece_move(self, x: int, y: int, x2: int, y2: int, h: int) -> bool:
         """
         Implements the move-part of tower legality check.
         Move pieces from a tower of height h from x,y to x2,y2
@@ -140,7 +131,7 @@ class Board():
         if h == 1:
             return (
                     ((y == y2) and (x == (x2 + 1) or x == (x2 - 1))) or
-                    ((x == x2) and (y == (y2 + 1) or x == (y2 - 1)))
+                    ((x == x2) and (y == (y2 + 1) or y == (y2 - 1)))
                     )
         elif h == 2:
             return self._is_legal_move_straight(x, y, x2, y2)
@@ -152,8 +143,7 @@ class Board():
             return self._is_legal_move_straight(x, y, x2, y2) or self._is_legal_move_diag(x, y, x2, y2)
         return False
 
-    def get_legal_moves(self, color):
-        # type: (int) -> list
+    def get_legal_moves(self, color: int) -> list:
         """
         Returns all the legal moves for the given color.
         moves are in the form of (int, (int, int), (int, int))
@@ -175,6 +165,8 @@ class Board():
                     continue
                 for y2 in range(self.n):
                     for x2 in range(self.n):
+                        if x == x2 and y == y2:
+                            continue
                         if self.position[x2][y2] == 0:
                             continue
                         h2 = self.get_height_of_tower(x2, y2)
@@ -188,15 +180,14 @@ class Board():
 
         return moves
 
-    def has_legal_moves(self):
+    def has_legal_moves(self) -> bool:
         """
         Returns True if has legal move else False
         """
         # I think there is always a legal move for one of the colors
         return True
 
-    def execute_move(self, move, color):
-        # type: ((int, (int, int), (int, int)), int) -> None
+    def execute_move(self, move: (int, (int, int), (int, int)), color: int) -> None:
         """Perform the given move on the board; flips pieces as necessary.
         color gives the color pf the piece to play (1=white,-1=black)
         """
@@ -242,19 +233,17 @@ import numpy as np
 
 class BoardNumpyUtil():
     @staticmethod
-    def board_to_numpy(board):
-        # type: (Board) -> np.ndarray
+    def board_to_numpy(board: Board) -> np.ndarray:
         a = board.position[:]
         a.append(board.pieces_left[:] + [0]*(board.n - 2))
         return np.array(a)
 
     @staticmethod
-    def board_shape_numpy(n):
+    def board_shape_numpy(n: int):
         return (n+1, n)
 
     @staticmethod
-    def board_from_numpy(board):
-        # type: (np.ndarray) -> Board
+    def board_from_numpy(board: np.ndarray) -> Board:
         #print(board)
         n = board.shape[0]-1
         b = Board(n)
@@ -263,8 +252,7 @@ class BoardNumpyUtil():
         return b
 
     @staticmethod
-    def move_to_numpy_val(n, action):
-        # type: (int, (int, (int, int), (int, int))) -> int
+    def move_to_numpy_val(n: int, action: (int, (int, int), (int, int))) -> int:
         piece_count, from_pos, to_pos = action
         if from_pos == (-1, -1):
             x2, y2 = to_pos
@@ -275,8 +263,7 @@ class BoardNumpyUtil():
             return n**2 + ((x + (y * n)) + (x2 + (y2 * n))*(n**2))+((piece_count-1)*(n**4))
 
     @staticmethod
-    def move_from_numpy_val(n, val):
-        # type: (int, int) -> (int, (int, int), (int, int))
+    def move_from_numpy_val(n: int, val: int) -> (int, (int, int), (int, int)):
         if 0 <= val < n**2:
             return 1, (-1, -1), (val % n, val // n)
         else:
@@ -286,13 +273,11 @@ class BoardNumpyUtil():
             return (v2 // (n**4))+1, (pv % n, pv // n), (p2v % n, p2v // n)
 
     @staticmethod
-    def get_height_of_tower_val(v):
-        # type: (int) -> int
+    def get_height_of_tower_val(v: int) -> int:
         return Board.get_height_of_tower_val(v)
 
     @staticmethod
-    def _get_reverse_val(v):
-        # type: (int) -> int
+    def _get_reverse_val(v: int) -> int:
         if v == 0:
             return 0
         h = BoardNumpyUtil.get_height_of_tower_val(v)
@@ -300,8 +285,7 @@ class BoardNumpyUtil():
         return (1 << h) | (((1 << h) - 1) & ~ (v & 0x1f))
 
     @staticmethod
-    def get_canonical_board(n, board, player):
-        # type: (int, np.ndarray, int) -> np.ndarray
+    def get_canonical_board(n: int, board: np.ndarray, player: int) -> np.ndarray:
         # return state if player==1, else return -state if player==-1
         if player == 1:
             return board
