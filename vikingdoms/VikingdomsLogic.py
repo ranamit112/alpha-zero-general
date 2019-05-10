@@ -32,6 +32,7 @@ class Board():
         for i in range(self.n):
             self.position[i] = [0] * self.n
         self.pieces_left = [self.start_pieces] * 2
+        self.last_move = None
 
     # add [][] indexer syntax to the Board
     def __getitem__(self, index): 
@@ -167,6 +168,9 @@ class Board():
                     for x2 in range(self.n):
                         if x == x2 and y == y2:
                             continue
+                        if self.last_move[2] == (x,y) and self.last_move[1] == (x2,y2):
+                            # print("trying undo-last-move {},{}->{},{}".format(x,y,x2,y2))
+                            continue
                         if self.position[x2][y2] == 0:
                             continue
                         h2 = self.get_height_of_tower(x2, y2)
@@ -226,21 +230,22 @@ class Board():
                     v = (((1 << (h - move_height)) - 1) & v) | (1 << (h - move_height))
             self.position[x][y] = v
             self.position[x2][y2] = v2
-
+        self.last_move = move
 
 import numpy as np
 
 
 class BoardNumpyUtil():
     @staticmethod
-    def board_to_numpy(board: Board) -> np.ndarray:
-        a = board.position[:]
-        a.append(board.pieces_left[:] + [0]*(board.n - 2))
-        return np.array(a)
-
-    @staticmethod
     def board_shape_numpy(n: int):
         return (n+1, n)
+
+    @staticmethod
+    def board_to_numpy(board: Board) -> np.ndarray:
+        a = board.position[:]
+        last_move_val = BoardNumpyUtil.move_to_numpy_val(board.n, board.last_move) if board.last_move is not None else -1
+        a.append(board.pieces_left[:] + [0]*(board.n - 3) + [last_move_val])
+        return np.array(a)
 
     @staticmethod
     def board_from_numpy(board: np.ndarray) -> Board:
@@ -249,6 +254,8 @@ class BoardNumpyUtil():
         b = Board(n)
         b.position = board[0:n].tolist()
         b.pieces_left[0:2] = board[n][0:2]
+        mv = board[n][n-1]
+        b.last_move = BoardNumpyUtil.move_from_numpy_val(n, mv) if mv != -1 else None
         return b
 
     @staticmethod

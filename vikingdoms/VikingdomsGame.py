@@ -66,7 +66,9 @@ class VikingdomsGame(Game):
         for x in range(self.n):
             for y in range(self.n):
                 if b.get_height_of_tower(x, y) == b.WIN_TOWER:
-                    return b.get_top_piece_player(x, y)
+                    won_color = b.get_top_piece_player(x, y)
+                    # print("player {} won".format(won_color))
+                    return won_color
         if b.has_legal_moves():
             return 0
         return 1e-4  # TODO: I don't understand this
