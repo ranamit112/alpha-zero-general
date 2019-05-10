@@ -51,10 +51,6 @@ class NNetWrapper(NeuralNet):
 
         # preparing input
         board = board[np.newaxis, :, :]
-        #with self.graph.as_default():
-        #    # run
-        #    self.nnet.model._make_predict_function()
-        #    pi, v = self.nnet.model.predict(board)
         pi, v = self.nnet.model.predict(board)
 
         #print('PREDICTION TIME TAKEN : {0:03f}'.format(time.time()-start))
