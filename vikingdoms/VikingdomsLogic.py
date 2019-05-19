@@ -1,4 +1,5 @@
 import math
+import numpy as np
 
 class Board():
     """
@@ -28,15 +29,9 @@ class Board():
         self.n = n
         self.start_pieces = n * ((n//2)+1)  # 12 for 4*4, 15 for 5*5
         # Create the empty board array.
-        self.position = [None] * self.n
-        for i in range(self.n):
-            self.position[i] = [0] * self.n
+        self.position = np.zeros(shape=(n, n), dtype=np.int8)
         self.pieces_left = [self.start_pieces] * 2
         self.last_move = None
-
-    # add [][] indexer syntax to the Board
-    def __getitem__(self, index): 
-        return self.position[index]
 
     def get_height_of_tower(self, x: int, y: int) -> int:
         v = self.position[x][y]
@@ -232,9 +227,6 @@ class Board():
             self.position[x2][y2] = v2
         self.last_move = move
 
-import numpy as np
-
-
 class BoardNumpyUtil():
     @staticmethod
     def board_shape_numpy(n: int):
@@ -242,18 +234,20 @@ class BoardNumpyUtil():
 
     @staticmethod
     def board_to_numpy(board: Board) -> np.ndarray:
-        a = board.position[:]
-        last_move_val = BoardNumpyUtil.move_to_numpy_val(board.n, board.last_move) if board.last_move is not None else -1
-        a.append(board.pieces_left[:] + [0]*(board.n - 3) + [last_move_val])
-        return np.array(a)
+        b2 = np.zeros(shape=(1, board.n), dtype=np.int8)
+        b2[0][0:2] = board.pieces_left[:]
+        last_move_val = BoardNumpyUtil.move_to_numpy_val(board.n,
+                                                         board.last_move) if board.last_move is not None else -1
+        b2[0][board.n-1] = last_move_val
+        return np.concatenate([board.position, b2])
 
     @staticmethod
     def board_from_numpy(board: np.ndarray) -> Board:
         #print(board)
         n = board.shape[0]-1
         b = Board(n)
-        b.position = board[0:n].tolist()
-        b.pieces_left[0:2] = board[n][0:2]
+        b.position = board[0:n].copy()
+        b.pieces_left[0:2] = board[n][0:2].tolist()
         mv = board[n][n-1]
         b.last_move = BoardNumpyUtil.move_from_numpy_val(n, mv) if mv != -1 else None
         return b
