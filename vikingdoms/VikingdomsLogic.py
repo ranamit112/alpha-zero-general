@@ -23,15 +23,24 @@ class Board():
     """
     WIN_TOWER = 6
 
-    def __init__(self, n):
+    def __init__(self, n, position=None, pieces_left=None, last_move=None):
         """Set up initial board configuration."""
 
         self.n = n
         self.start_pieces = n * ((n//2)+1)  # 12 for 4*4, 15 for 5*5
-        # Create the empty board array.
-        self.position = np.zeros(shape=(n, n), dtype=np.int8)
-        self.pieces_left = [self.start_pieces] * 2
-        self.last_move = None
+        if position is None:
+            # Create the empty board array.
+            self.position = np.zeros(shape=(n, n), dtype=np.int8)
+            self.pieces_left = [self.start_pieces] * 2
+            self.last_move = None
+        else:
+            # copy params
+            self.position = position
+            self.pieces_left = pieces_left
+            self.last_move = last_move
+
+    def __copy__(self):
+        return Board(self.n, np.copy(self.position), self.pieces_left.copy(), self.last_move)
 
     def get_height_of_tower(self, x: int, y: int) -> int:
         v = self.position[x][y]

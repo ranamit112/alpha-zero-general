@@ -28,6 +28,7 @@ args = dotdict({
 class NNetWrapper(NeuralNet):
     def __init__(self, game):
         #self.graph = tf.get_default_graph()
+        self.game = game
         self.nnet = onnet(game, args)
         self.board_x, self.board_y = game.getBoardSize()
         self.action_size = game.getActionSize()
@@ -40,6 +41,7 @@ class NNetWrapper(NeuralNet):
         input_boards = np.asarray(input_boards)
         target_pis = np.asarray(target_pis)
         target_vs = np.asarray(target_vs)
+        input_boards = self.game.encode_multiple(input_boards)
         self.nnet.model.fit(x = input_boards, y = [target_pis, target_vs], batch_size = args.batch_size, epochs = args.epochs)
 
     def predict(self, board):
@@ -50,6 +52,7 @@ class NNetWrapper(NeuralNet):
         # start = time.time()
 
         # preparing input
+        board = self.game.encode(board)
         board = board[np.newaxis, :, :]
         pi, v = self.nnet.model.predict(board)
 
