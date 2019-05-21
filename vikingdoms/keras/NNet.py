@@ -30,7 +30,7 @@ class NNetWrapper(NeuralNet):
         #self.graph = tf.get_default_graph()
         self.game = game
         self.nnet = onnet(game, args)
-        self.board_x, self.board_y = game.getBoardSize()
+        self.board_x, self.board_y, num_encoders = game.getBoardSize()
         self.action_size = game.getActionSize()
 
     def train(self, examples):

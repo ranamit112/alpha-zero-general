@@ -25,7 +25,7 @@ class VikingdomsGame(Game):
 
     def getBoardSize(self):
         # (a,b) tuple
-        return BoardNumpyUtil.board_shape_numpy(self.n)
+        return BoardNumpyUtil.board_shape_encode(self.n)
 
     def getActionSize(self) -> int:
         # return number of actions
@@ -38,11 +38,11 @@ class VikingdomsGame(Game):
         assert action <= self.getActionSize()-1
         # skip
         if action == self.getActionSize()-1:
-            return (board, 1 - player)
+            return (board, -player)
         move = BoardNumpyUtil.move_from_numpy_val(self.n, action)
         board = copy.copy(board)
         board.execute_move(move, player)
-        return board, 1 - player
+        return board, -player
 
     # modified
     def getValidMoves(self, board: Board, player: int) -> np.ndarray:
@@ -72,14 +72,7 @@ class VikingdomsGame(Game):
         return 1e-4  # TODO: I don't understand this
 
     def getCanonicalForm(self, board: Board, player: int) -> Board:
-        if player == 1:
-            return board
-        # return state if player==1, else return -state if player==-1
-        b = BoardNumpyUtil.board_to_numpy(board)
-        bc = BoardNumpyUtil.get_canonical_board(self.n, b, player)
-        board2 = BoardNumpyUtil.board_from_numpy(bc)
-        board2.last_move = board.last_move
-        return board2
+        return board.get_canonical_board(player)
 
     # modified
     def getSymmetries(self, board: Board, pi: np.ndarray) -> list:
@@ -111,10 +104,8 @@ class VikingdomsGame(Game):
         return l
 
     def stringRepresentation(self, board: Board) -> bytes:
-        bn = BoardNumpyUtil.board_to_numpy(board)
-        bn[self.n][self.n-1] = 0
-        # print(bn)
-        return bn.tostring()
+        #board.display()
+        return board.to_string_representation()
 
     def encode_multiple(self, boards: [Board]) -> np.ndarray:
         """
@@ -133,7 +124,4 @@ class VikingdomsGame(Game):
         :param board: normal board
         :return: new encoded board
         """
-
-        bn = BoardNumpyUtil.board_to_numpy(board)
-        bn[self.n][self.n-1] = 0
-        return bn
+        return BoardNumpyUtil.board_encode(board)
