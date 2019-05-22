@@ -34,16 +34,15 @@ class MCTS():
         s = self.game.stringRepresentation(canonicalBoard)
         counts = [self.Nsa[(s,a)] if (s,a) in self.Nsa else 0 for a in range(self.game.getActionSize())]
 
-        if temp==0:
+        if temp == 0:
             bestA = np.argmax(counts)
             probs = [0]*len(counts)
-            probs[bestA]=1
+            probs[bestA] = 1
             return probs
 
         counts = [x**(1./temp) for x in counts]
         probs = [x/float(sum(counts)) for x in counts]
         return probs
-
 
     def search(self, canonicalBoard, depth):
         """
@@ -71,9 +70,7 @@ class MCTS():
             self.Es[s] = self.game.getGameEnded(canonicalBoard, 1)
         if self.Es[s]!=0:
             # terminal node
-            return -self.Es[s]
-        if depth >= self.args.maxMCTSMoveDepth:
-            # max move depth reached
+            # print("Terminal Node, won={}", -self.Es[s])
             return -self.Es[s]
 
         if s not in self.Ps:
@@ -96,6 +93,13 @@ class MCTS():
             self.Vs[s] = valids
             self.Ns[s] = 0
             return -v
+
+        if depth >= self.args.maxMCTSMoveDepth:
+            # max move depth reached
+            #_, v = self.nnet.predict(canonicalBoard)
+            #print("max move depth reached, {}".format(v))
+            #print("max move depth reached")
+            return 0
 
         valids = self.Vs[s]
         cur_best = -float('inf')
