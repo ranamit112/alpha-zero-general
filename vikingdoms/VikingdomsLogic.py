@@ -162,9 +162,9 @@ class Board():
                     for x2 in range(self.n):
                         if x == x2 and y == y2:
                             continue
-                        if self.last_move and self.last_move[2] == (x, y) and self.last_move[1] == (x2, y2):
-                            # print("trying undo-last-move {},{}->{},{}".format(x,y,x2,y2))
-                            continue
+                        #if training and self.last_move and self.last_move[2] == (x, y) and self.last_move[1] == (x2, y2):
+                        #    # print("trying undo-last-move {},{}->{},{}".format(x,y,x2,y2))
+                        #    continue
                         if self.position[x2][y2][0] == 0:
                             continue
                         h2 = self.get_height_of_tower(x2, y2)
@@ -228,6 +228,7 @@ class Board():
 
     def to_string_representation(self) -> bytes:
         # convert to packed binary representation
+        # string representation does not have to include all information, but should include all information needed for uniqueness of moves
 
         # equivalent to "1 if value == 1 else 0", or "1: 1, -1: 0, 0: 0"
         bn = ((self.position + 1) // 2)
@@ -239,7 +240,7 @@ class Board():
                 if h != 0:
                     r[x][y][h] = 1
         bs = np.packbits(np.flip(r, axis=-1), axis=-1).tostring()
-        pls = np.array(self.pieces_left, dtype=np.int8).tostring()
+        pls = np.array([1 if p > 0 else 0 for p in self.pieces_left], dtype=np.int8).tostring()
         return bs+pls
 
     def display(self):

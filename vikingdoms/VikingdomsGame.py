@@ -97,10 +97,10 @@ class VikingdomsGame(Game):
                     newPi1 = np.fliplr(newPi1)
                     newPi2 = np.flip(newPi2, 1)
                     newPi2 = np.flip(newPi2, 3)
-                new_board = board
+                new_board = copy.copy(board)
                 new_board.position = newB
                 new_board.last_move = None
-                l += [(new_board, list(newPi1.ravel()) + list(newPi2.ravel()) + [pi_skip])]
+                l += [(new_board, np.concatenate((newPi1.ravel(), newPi2.ravel(), [pi_skip])))]
         return l
 
     def stringRepresentation(self, board: Board) -> bytes:
