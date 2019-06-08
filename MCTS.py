@@ -32,16 +32,16 @@ class MCTS():
             self.search(canonicalBoard, 0)
 
         s = self.game.stringRepresentation(canonicalBoard)
-        counts = [self.Nsa[(s,a)] if (s,a) in self.Nsa else 0 for a in range(self.game.getActionSize())]
+        counts = np.array([self.Nsa.get((s,a), 0) for a in range(self.game.getActionSize())])
 
         if temp == 0:
             bestA = np.argmax(counts)
-            probs = [0]*len(counts)
+            probs = np.zeros(shape=(len(counts)), dtype=int)
             probs[bestA] = 1
             return probs
-
-        counts = [x**(1./temp) for x in counts]
-        probs = [x/float(sum(counts)) for x in counts]
+        if temp != 1:
+            counts = np.power(counts, (1./temp))                    # [x**(1./temp) for x in counts]
+        probs = np.divide(counts, np.sum(counts), dtype=np.single)  # [x/float(sum(counts)) for x in counts]
         return probs
 
     def search(self, canonicalBoard, depth):
@@ -76,8 +76,11 @@ class MCTS():
         if s not in self.Ps:
             # leaf node
             self.Ps[s], v = self.nnet.predict(canonicalBoard)
+            if isinstance(v, np.ndarray):
+                assert len(v) == 1
+                v = v[0]
             valids = self.game.getValidMoves(canonicalBoard, 1)
-            self.Ps[s] = self.Ps[s]*valids      # masking invalid moves
+            self.Ps[s] = np.multiply(self.Ps[s], valids, dtype=self.Ps[s].dtype)      # masking invalid moves
             sum_Ps_s = np.sum(self.Ps[s])
             if sum_Ps_s > 0:
                 self.Ps[s] /= sum_Ps_s    # renormalize
