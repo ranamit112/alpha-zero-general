@@ -57,19 +57,19 @@ class VikingdomsGame(Game):
             valids[BoardNumpyUtil.move_to_numpy_val(self.n, m)] = 1
         return np.array(valids)
 
-    # modified
     def getGameEnded(self, board: Board, player: int) -> int or float:
-        # return 0 if not ended, 1 if player 1 won, -1 if player 1 lost
-        # player = 1
         for x in range(self.n):
             for y in range(self.n):
                 if board.get_height_of_tower(x, y) == board.WIN_TOWER:
                     won_color = board.get_top_piece_player(x, y)
-                    # print("player {} won".format(won_color))
-                    return won_color
+                    #print("player {} won".format(won_color))
+                    if won_color == player:
+                        return +1
+                    else:
+                        return -1
         if board.has_legal_moves():
             return 0
-        return 1e-4  # TODO: I don't understand this
+        return 1e-4  # draw, theoretical
 
     def getCanonicalForm(self, board: Board, player: int) -> Board:
         return board.get_canonical_board(player)
