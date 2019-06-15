@@ -74,7 +74,6 @@ class VikingdomsGame(Game):
     def getCanonicalForm(self, board: Board, player: int) -> Board:
         return board.get_canonical_board(player)
 
-    # modified
     def getSymmetries(self, board: Board, pi: np.ndarray) -> list:
         # mirror, rotational
         assert(len(pi) == self.getActionSize())  # -1 for pass
@@ -99,6 +98,9 @@ class VikingdomsGame(Game):
                     newPi2 = np.flip(newPi2, 3)
                 new_board = copy.copy(board)
                 new_board.position = newB
+                # No need to actually set the last move, because this list is only used for learning,
+                # and because the last move it not encoded, it does not affect learning
+                # The effect of the last move is already inherent in the pi array (which is based on legal moved)
                 new_board.last_move = None
                 l += [(new_board, np.concatenate((newPi1.ravel(), newPi2.ravel(), [pi_skip])))]
         return l

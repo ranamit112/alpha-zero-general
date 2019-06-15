@@ -162,9 +162,9 @@ class Board():
                     for x2 in range(self.n):
                         if x == x2 and y == y2:
                             continue
-                        #if training and self.last_move and self.last_move[2] == (x, y) and self.last_move[1] == (x2, y2):
-                        #    # print("trying undo-last-move {},{}->{},{}".format(x,y,x2,y2))
-                        #    continue
+                        if self.last_move and self.last_move[2] == (x, y) and self.last_move[1] == (x2, y2):
+                            # print("trying undo-last-move {},{}->{},{}".format(x,y,x2,y2))
+                            continue
                         if self.position[x2][y2][0] == 0:
                             continue
                         h2 = self.get_height_of_tower(x2, y2)
@@ -200,6 +200,8 @@ class Board():
             self.position[x2][y2][0] = color
             self.pieces_left[color_pos] -= 1
         else:
+            #if self.last_move and self.last_move[2] == (x, y) and self.last_move[1] == (x2, y2):
+            #    print("player {} undoing last move {},{}->{},{}".format(color, x, y, x2, y2))
             h = self.get_height_of_tower(x, y)
             assert 1 <= move_height <= h
             if move_height == h and self.position[x2][y2][0] == 0:
@@ -241,12 +243,16 @@ class Board():
                     r[x][y][h] = 1
         bs = np.packbits(np.flip(r, axis=-1), axis=-1).tostring()
         pls = np.array([1 if p > 0 else 0 for p in self.pieces_left], dtype=np.int8).tostring()
-        return bs+pls
+        if self.last_move is None or self.last_move[1][0] == -1:
+            move = np.array([-1] * 4, dtype=np.int8).tostring()
+        else:
+            move = np.array([self.last_move[1][0], self.last_move[1][1], self.last_move[2][0], self.last_move[2][1]], dtype=np.int8).tostring()
+        return bs+pls+move
 
     def display(self):
         s = self.to_string_representation()
         print(np.reshape([int(i) for i in s[:self.n*self.n]], (self.n, self.n)))
-        print("left {},{}".format(int(s[self.n*self.n]), int(s[self.n*self.n + 1])))
+        print("left {},{}".format(self.pieces_left[0], self.pieces_left[1]))
 
 class BoardNumpyUtil():
     @staticmethod
@@ -259,18 +265,6 @@ class BoardNumpyUtil():
         pieces_left_numpy[:][:][0] = board.pieces_left[0] / board.start_pieces
         pieces_left_numpy[:][:][1] = board.pieces_left[1]
         return np.c_[board.position, pieces_left_numpy]
-
-    @staticmethod
-    def board_from_numpy(board: np.ndarray) -> Board:
-        #print(board)
-        #n = board.shape[0]-1
-        #b = Board(n)
-        #b.position = board[0:n].copy()
-        #b.pieces_left[0:2] = board[n][0:2].tolist()
-        #mv = board[n][n-1]
-        #b.last_move = BoardNumpyUtil.move_from_numpy_val(n, mv) if mv != -1 else None
-        #return b
-        return None
 
     @staticmethod
     def move_to_numpy_val(n: int, action: (int, (int, int), (int, int))) -> int:
