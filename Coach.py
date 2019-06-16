@@ -4,9 +4,9 @@ from MCTS import MCTS
 import numpy as np
 from pytorch_classification.utils import Bar, AverageMeter
 import time, os, sys
-from pickle import Pickler, Unpickler
+import pickle
 from random import shuffle
-
+import contextlib
 
 class Coach():
     """
@@ -138,23 +138,43 @@ class Coach():
         folder = self.args.checkpoint
         if not os.path.exists(folder):
             os.makedirs(folder)
-        filename = os.path.join(folder, self.getCheckpointFile(iteration)+".examples")
-        with open(filename, "wb+") as f:
-            Pickler(f).dump(self.trainExamplesHistory)
-        f.closed
+        examplesFile = os.path.join(folder, self.getCheckpointFile(iteration)+".examples.bz2")
+        print("Saving {}".format(examplesFile))
+        try:
+            import bz2
+            f1 = bz2.open(examplesFile, "wb")
+        except (ImportError, IOError):
+            f1 = open(examplesFile, "wb")
+        with contextlib.closing(f1) as f:
+            p = pickle.Pickler(f, protocol=pickle.HIGHEST_PROTOCOL)
+            p.dump(len(self.trainExamplesHistory))
+            for i, value in enumerate(self.trainExamplesHistory):
+                p.dump(value)
+                if i % 100 == 0:
+                    p.clear_memo()
+            p.clear_memo()
+            del p
 
     def loadTrainExamples(self):
-        modelFile = os.path.join(self.args.load_folder_file[0], self.args.load_folder_file[1])
-        examplesFile = modelFile+".examples"
+        modelFile = os.path.join(self.args.checkpoint, self.args.load_folder_file[1])
+        examplesFile = modelFile+".examples.bz2"
         if not os.path.isfile(examplesFile):
             print(examplesFile)
             r = input("File with trainExamples not found. Continue? [y|n]")
             if r != "y":
                 sys.exit()
         else:
-            print("File with trainExamples found. Read it.")
-            with open(examplesFile, "rb") as f:
-                self.trainExamplesHistory = Unpickler(f).load()
+            print("loading {}".format(examplesFile))
+            try:
+                import bz2
+                f1 = bz2.open(examplesFile, "wb")
+            except (ImportError, IOError):
+                f1 = open(examplesFile, "wb")
+            with contextlib.closing(f1) as f:
+                self.trainExamplesHistory.clear()
+                p = pickle.Unpickler(f)
+                for _ in range(p.load()):
+                    self.trainExamplesHistory.append(p.load())
             f.closed
             # examples based on the model were already collected (loaded)
-            self.skipFirstSelfPlay = True
+            #self.skipFirstSelfPlay = True
