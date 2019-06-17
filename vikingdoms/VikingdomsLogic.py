@@ -262,8 +262,9 @@ class BoardNumpyUtil():
     @staticmethod
     def board_encode(board: Board) -> np.ndarray:
         pieces_left_numpy = np.zeros((board.n, board.n, 2), dtype=np.single)
-        pieces_left_numpy[:][:][0] = board.pieces_left[0] / board.start_pieces
-        pieces_left_numpy[:][:][1] = board.pieces_left[1]
+        # encode the number of pieces left, each as a whole layer of same-value, between 0 and 1
+        pieces_left_numpy[:,:,0] = board.pieces_left[0] / board.start_pieces
+        pieces_left_numpy[:,:,1] = board.pieces_left[1] / board.start_pieces
         return np.c_[board.position, pieces_left_numpy]
 
     @staticmethod
