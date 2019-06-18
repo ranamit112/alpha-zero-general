@@ -114,7 +114,7 @@ class Coach():
             self.pnet.load_checkpoint(folder=self.args.checkpoint, filename='temp.pth.tar')
             pmcts = MCTS(self.game, self.pnet, self.args)
             
-            self.nnet.train(trainExamples)
+            self.nnet.train(trainExamples, iteration=i)
             nmcts = MCTS(self.game, self.nnet, self.args)
 
             print('PITTING AGAINST PREVIOUS VERSION')
@@ -167,9 +167,9 @@ class Coach():
             print("loading {}".format(examplesFile))
             try:
                 import bz2
-                f1 = bz2.open(examplesFile, "wb")
+                f1 = bz2.open(examplesFile, "rb")
             except (ImportError, IOError):
-                f1 = open(examplesFile, "wb")
+                f1 = open(examplesFile, "rb")
             with contextlib.closing(f1) as f:
                 self.trainExamplesHistory.clear()
                 p = pickle.Unpickler(f)
@@ -177,4 +177,4 @@ class Coach():
                     self.trainExamplesHistory.append(p.load())
             f.closed
             # examples based on the model were already collected (loaded)
-            #self.skipFirstSelfPlay = True
+            self.skipFirstSelfPlay = True

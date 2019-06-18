@@ -72,7 +72,7 @@ class NNetWrapper(NeuralNet):
         self.board_x, self.board_y, num_encoders = game.getBoardSize()
         self.action_size = game.getActionSize()
 
-    def train(self, examples):
+    def train(self, examples, iteration=None):
         """
         examples: list of examples, each example is of form (board, pi, v)
         """
@@ -83,7 +83,7 @@ class NNetWrapper(NeuralNet):
         input_boards = self.game.encode_multiple(input_boards)
         #es = EarlyStoppingEx(monitor='v_acc', verbose=1, patience=3, restore_best_weights=True, over_value=0.25,
         #                     min_delta=0.05)
-        tb = TensorBoard()
+        tb = TensorBoard(log_dir="./logs/iter{}".format(iteration if iteration is not None else ""))
         es = EarlyStopping(monitor='loss', verbose=1, patience=3, restore_best_weights=True)
         checkpoint = ModelCheckpoint(os.path.join('./temp', 'checkpoint.temp.pth.tar'),
                                      monitor='v_acc', verbose=1, save_weights_only=True)
