@@ -109,16 +109,11 @@ class MCTS():
         best_act = -1
 
         # pick the action with the highest upper confidence bound
-        for a in range(self.game.getActionSize()):
-            if valids[a]:
-                if (s,a) in self.Qsa:
-                    u = self.Qsa[(s,a)] + self.args.cpuct*self.Ps[s][a]*math.sqrt(self.Ns[s])/(1+self.Nsa[(s,a)])
-                else:
-                    u = self.args.cpuct*self.Ps[s][a]*math.sqrt(self.Ns[s] + EPS)     # Q = 0 ?
-
-                if u > cur_best:
-                    cur_best = u
-                    best_act = a
+        for a in np.flatnonzero(valids):
+            u = self._calc_upper_confidence(a, s)
+            if u > cur_best:
+                cur_best = u
+                best_act = a
 
         a = best_act
         next_s, next_player = self.game.getNextState(canonicalBoard, 1, a)
@@ -136,3 +131,10 @@ class MCTS():
 
         self.Ns[s] += 1
         return -v
+
+    def _calc_upper_confidence(self, a, s):
+        if (s, a) in self.Qsa:
+            u = self.Qsa[(s, a)] + self.args.cpuct * self.Ps[s][a] * math.sqrt(self.Ns[s]) / (1 + self.Nsa[(s, a)])
+        else:
+            u = self.args.cpuct * self.Ps[s][a] * math.sqrt(self.Ns[s] + EPS)  # Q = 0 ?
+        return u

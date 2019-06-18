@@ -47,7 +47,7 @@ class VikingdomsGame(Game):
     # modified
     def getValidMoves(self, board: Board, player: int) -> np.ndarray:
         # return a fixed size binary vector
-        valids = [0] * self.getActionSize()
+        valids = np.zeros(self.getActionSize(), dtype=np.int8)
         legal_moves = board.get_legal_moves(player)
         if len(legal_moves) == 0:  # last position is skip
             valids[-1] = 1
@@ -55,7 +55,7 @@ class VikingdomsGame(Game):
 
         for m in legal_moves:
             valids[BoardNumpyUtil.move_to_numpy_val(self.n, m)] = 1
-        return np.array(valids)
+        return valids
 
     def getGameEnded(self, board: Board, player: int) -> int or float:
         for x in range(self.n):
