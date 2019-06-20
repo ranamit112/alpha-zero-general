@@ -44,52 +44,28 @@ class Board():
         return Board(self.n, np.copy(self.position), self.pieces_left.copy(), self.last_move)
 
     def get_height_of_tower(self, x: int, y: int) -> int:
-        for i, v in enumerate(self.position[x][y]):
-            if v == 0:
-                return i
-        return len(self.position[x][y])
+        return np.count_nonzero(self.position[x, y])
 
     def get_top_piece_player(self, x: int, y: int) -> int:
-        for v in self.position[x][y][::-1]:
+        for v in reversed(self.position[x, y]):
             if v != 0:
                 return v
         return 0
-
-    def _is_free_straight(self, x: int, y: int, x2: int, y2: int) -> bool:
-        if x > x2:
-            for x0 in range(x - 1, x2, -1):
-                if self.position[x0][y][0] != 0:
-                    return False
-        elif x < x2:
-            for x0 in range(x + 1, x2, +1):
-                if self.position[x0][y][0] != 0:
-                    return False
-        elif y > y2:
-            for y0 in range(y - 1, y2, -1):
-                if self.position[x][y0][0] != 0:
-                    return False
-        elif y < y2:
-            for y0 in range(y + 1, y2, +1):
-                if self.position[x][y0][0] != 0:
-                    return False
-        return True
 
     def _is_legal_move_straight(self, x: int, y: int, x2: int, y2: int) -> bool:
         if not (((y == y2) and (x != x2)) or
                 ((x == x2) and (y != y2))):
             return False
 
-        # xdp = (x2 - x) // abs(x2 - x)
-        # ydp = (y2 - y) // abs(y2 - y)
-        xdp = 1 if x2 > x else -1
-        ydp = 1 if y2 > y else -1
+        xdp = np.sign(x2 - x)
+        ydp = np.sign(y2 - y)
         if xdp != 0:
             for x0 in range(x + xdp, x2, xdp):
-                if self.position[x0][y][0] != 0:
+                if self.position[x0, y, 0] != 0:
                     return False
         elif ydp != 0:
             for y0 in range(y + ydp, y2, ydp):
-                if self.position[x][y0][0] != 0:
+                if self.position[x, y0, 0] != 0:
                     return False
         return True
 
@@ -98,21 +74,21 @@ class Board():
         yd = y - y2
         if xd == 0 or abs(xd) != abs(yd):
             return False
-        xdp = 1 if x2 > x else -1
-        ydp = 1 if y2 > y else -1
+        xdp = np.sign(x2 - x)
+        ydp = np.sign(y2 - y)
 
         for p in range(1, abs(xd)):
-            if self.position[x + xdp*p][y + ydp*p][0] != 0:
+            if self.position[x + xdp*p, y + ydp*p, 0] != 0:
                 return False
         return True
 
     def _is_legal_move_knight(self, x: int, y: int, x2: int, y2: int) -> bool:
-        xd = x - x2
-        yd = y - y2
+        axd = abs(x - x2)
+        ayd = abs(y - y2)
         if (
-                (abs(xd) == 0 or abs(yd) == 0) or
-                (abs(xd) >= 3 or abs(yd) >= 3) or
-                (abs(xd) == abs(yd))):
+                (axd == 0 or ayd == 0) or
+                (axd >= 3 or ayd >= 3) or
+                (axd == ayd)):
             return False
         return True
 
@@ -149,32 +125,30 @@ class Board():
         if self.pieces_left[color_pos] > 0:
             for y in range(self.n):
                 for x in range(self.n):
-                    if self.position[x][y][0] == 0:
+                    if self.position[x, y, 0] == 0:
                         moves.append((1, (-1, -1), (x, y)))
 
         # move part of tower from one place on the board to another (which is not empty)
-        for y in range(self.n):
-            for x in range(self.n):
-                h = self.get_height_of_tower(x, y)
-                if h == 0:
-                    continue
-                for y2 in range(self.n):
-                    for x2 in range(self.n):
-                        if x == x2 and y == y2:
-                            continue
-                        if self.last_move and self.last_move[2] == (x, y) and self.last_move[1] == (x2, y2):
-                            # print("trying undo-last-move {},{}->{},{}".format(x,y,x2,y2))
-                            continue
-                        if self.position[x2][y2][0] == 0:
-                            continue
-                        h2 = self.get_height_of_tower(x2, y2)
-                        if h2 >= Board.WIN_TOWER:
-                            assert h2 < Board.WIN_TOWER, "Moving to position {},{} with height={}".format(x2, y2, h2)
-                            continue
-                        if not self._is_legal_piece_move(x, y, x2, y2, h):
-                            continue
-                        for h0 in range(1, min(h+1, Board.WIN_TOWER-h2+1)):
-                            moves.append((h0, (x, y), (x2, y2)))
+
+        # non-empty indexes are those that have a piece at lowest position, use nonzero to find them all
+        non_empty_index = np.transpose(np.nonzero(self.position[:, :, 0]))
+        if len(non_empty_index) > 1:
+            for x, y in non_empty_index:
+                for x2, y2 in non_empty_index:
+                    if x == x2 and y == y2:
+                        continue
+                    if self.last_move and self.last_move[2] == (x, y) and self.last_move[1] == (x2, y2):
+                        # print("trying undo-last-move {},{}->{},{}".format(x,y,x2,y2))
+                        continue
+                    h = self.get_height_of_tower(x, y)
+                    assert h != 0
+                    if not self._is_legal_piece_move(x, y, x2, y2, h):
+                        continue
+                    h2 = self.get_height_of_tower(x2, y2)
+                    if h2 >= Board.WIN_TOWER:
+                        assert h2 < Board.WIN_TOWER, "Moving to position {},{} with height={}".format(x2, y2, h2)
+                    for h0 in range(1, min(h+1, Board.WIN_TOWER-h2+1)):
+                        moves.append((h0, (x, y), (x2, y2)))
 
         return moves
 
@@ -195,8 +169,10 @@ class Board():
         move_height, (x, y), (x2, y2) = move
         if x == -1 and y == -1:
             assert move_height == 1
-            assert self.position[x2][y2][0] == 0, "{},{} is not empty".format(x2, y2)
-            assert self.pieces_left[color_pos] >= 1, "color pieces {} == {}".format(color_pos, self.pieces_left[color_pos])
+            #assert self.position[x2, y2, 0] == 0, "{},{} is not empty".format(x2, y2)
+            #assert self.pieces_left[color_pos] >= 1, "color pieces {} == {}".format(color_pos, self.pieces_left[color_pos])
+            assert self.position[x2, y2, 0] == 0
+            assert self.pieces_left[color_pos] >= 1
             self.position[x2][y2][0] = color
             self.pieces_left[color_pos] -= 1
         else:
@@ -204,17 +180,17 @@ class Board():
             #    print("player {} undoing last move {},{}->{},{}".format(color, x, y, x2, y2))
             h = self.get_height_of_tower(x, y)
             assert 1 <= move_height <= h
-            if move_height == h and self.position[x2][y2][0] == 0:
+            assert not (x == x2 and y == y2)
+            if move_height == h and self.position[x2, y2, 0] == 0:
                 # just move the value
-                v = self.position[x][y][:]
-                self.position[x2][y2] = v
-                self.position[x][y] = 0
+                self.position[x2, y2] = self.position[x, y]
+                self.position[x, y] = 0
             else:
                 h2 = self.get_height_of_tower(x2, y2)
                 assert move_height + h2 <= self.WIN_TOWER
 
-                self.position[x2][y2][h2:h2+move_height] = self.position[x][y][h-move_height:h]
-                self.position[x][y][h - move_height:h] = 0
+                self.position[x2, y2, h2:h2+move_height] = self.position[x, y, h-move_height:h]
+                self.position[x, y, h - move_height:h] = 0
         self.last_move = move
 
     def get_canonical_board(self, player: int) -> 'Board':
@@ -236,11 +212,11 @@ class Board():
         bn = ((self.position + 1) // 2)
         pad = np.zeros((self.n, self.n, 8-Board.WIN_TOWER), dtype=bn.dtype)
         r = np.copy(np.c_[bn, pad])
-        for x in range(self.n):
-            for y in range(self.n):
-                h = self.get_height_of_tower(x, y)
-                if h != 0:
-                    r[x][y][h] = 1
+        non_empty_index = np.transpose(np.nonzero(self.position[:, :, 0]))
+        for x, y in non_empty_index:
+            h = self.get_height_of_tower(x, y)
+            assert h != 0
+            r[x, y, h] = 1
         bs = np.packbits(np.flip(r, axis=-1), axis=-1).tostring()
         pls = np.array([1 if p > 0 else 0 for p in self.pieces_left], dtype=np.int8).tostring()
         if self.last_move is None or self.last_move[1][0] == -1:
@@ -263,8 +239,8 @@ class BoardNumpyUtil():
     def board_encode(board: Board) -> np.ndarray:
         pieces_left_numpy = np.zeros((board.n, board.n, 2), dtype=np.single)
         # encode the number of pieces left, each as a whole layer of same-value, between 0 and 1
-        pieces_left_numpy[:,:,0] = board.pieces_left[0] / board.start_pieces
-        pieces_left_numpy[:,:,1] = board.pieces_left[1] / board.start_pieces
+        pieces_left_numpy[:, :, 0] = board.pieces_left[0] / board.start_pieces
+        pieces_left_numpy[:, :, 1] = board.pieces_left[1] / board.start_pieces
         return np.c_[board.position, pieces_left_numpy]
 
     @staticmethod
