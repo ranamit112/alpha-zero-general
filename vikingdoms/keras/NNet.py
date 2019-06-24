@@ -17,12 +17,16 @@ import warnings
 import argparse
 from .VikingdomsNNet import VikingdomsNNet as onnet
 
+USE_CUDA = True
+if not USE_CUDA:
+    os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+
 args = dotdict({
     'lr': 0.003,
     'dropout': 0.3,
     'epochs': 20,
     'batch_size': 256,
-    'cuda': False,
+    'cuda': USE_CUDA,
     'num_channels': 512,
 })
 
