@@ -35,10 +35,10 @@ class MCTS():
         counts = np.array([self.Nsa.get((s,a), 0) for a in range(self.game.getActionSize())])
 
         if temp == 0:
-            bestA = np.argmax(counts)
             probs = np.zeros(shape=(len(counts)), dtype=int)
-            probs[bestA] = 1
+            probs[np.random.choice(np.flatnonzero(counts == counts.max()))] = 1
             return probs
+
         if temp != 1:
             counts = np.power(counts, (1./temp))                    # [x**(1./temp) for x in counts]
         probs = np.divide(counts, np.sum(counts), dtype=np.single)  # [x/float(sum(counts)) for x in counts]
@@ -86,7 +86,7 @@ class MCTS():
                 self.Ps[s] /= sum_Ps_s    # renormalize
             else:
                 # if all valid moves were masked make all valid moves equally probable
-                
+
                 # NB! All valid moves may be masked if either your NNet architecture is insufficient or you've get overfitting or something else.
                 # If you have got dozens or hundreds of these messages you should pay attention to your NNet and/or training process.   
                 print("All valid moves were masked, do workaround.")
@@ -99,22 +99,22 @@ class MCTS():
 
         if depth >= self.args.maxMCTSMoveDepth:
             # max move depth reached
-            #_, v = self.nnet.predict(canonicalBoard)
-            #print("max move depth reached, {}".format(v))
             #print("max move depth reached")
             return 0
 
         valids = self.Vs[s]
-        cur_best = -float('inf')
-        best_act = -1
-
-        # pick the action with the highest upper confidence bound
+        e = self.args.epsilon if depth == 0 else 0
+        if e > 0:
+            noise = np.random.dirichlet(np.full(len(valids), self.args.dirAlpha))
+        Us = np.full(len(valids), -math.inf)
+        has_valids = False
         for a in np.flatnonzero(valids):
-            u = self._calc_upper_confidence(a, s)
-            if u > cur_best:
-                cur_best = u
-                best_act = a
-
+            a_noise = noise[a] if e > 0 else 0
+            Us[a] = self._calc_upper_confidence(a, s, e, a_noise)
+            has_valids = True
+        assert has_valids
+        # choose one of the actions that has a value equal to the maximum
+        best_act = np.random.choice(np.flatnonzero(Us == Us.max()))
         a = best_act
         next_s, next_player = self.game.getNextState(canonicalBoard, 1, a)
         next_s = self.game.getCanonicalForm(next_s, next_player)
@@ -132,9 +132,20 @@ class MCTS():
         self.Ns[s] += 1
         return -v
 
-    def _calc_upper_confidence(self, a, s):
+    def _calc_upper_confidence(self, a, s, e=0, noise=0):
         if (s, a) in self.Qsa:
-            u = self.Qsa[(s, a)] + self.args.cpuct * self.Ps[s][a] * math.sqrt(self.Ns[s]) / (1 + self.Nsa[(s, a)])
+            q = self.Qsa[(s, a)]
+            n_s_a = self.Nsa[(s, a)]
+            ns = self.Ns[s]
         else:
-            u = self.args.cpuct * self.Ps[s][a] * math.sqrt(self.Ns[s] + EPS)  # Q = 0 ?
+            q = 0
+            n_s_a = 0
+            ns = self.Ns[s]
+            if not e:
+                ns += EPS
+        p = self.Ps[s][a]
+        if noise and e > 0:
+            p = (1 - e) * p + e * noise
+
+        u = q + self.args.cpuct * p * math.sqrt(ns) / (1 + n_s_a)
         return u

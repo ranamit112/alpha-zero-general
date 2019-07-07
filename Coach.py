@@ -43,7 +43,8 @@ class Coach():
         self.curPlayer = 1
         episodeStep = 0
 
-        while True:
+        r = 0
+        while r == 0:
             episodeStep += 1
             canonicalBoard = self.game.getCanonicalForm(board, self.curPlayer)
             temp = int(episodeStep < self.args.tempThreshold)
@@ -58,8 +59,7 @@ class Coach():
 
             r = self.game.getGameEnded(board, self.curPlayer)
 
-            if r!=0:
-                return [(b, p, r*((-1)**(curPlayer!=self.curPlayer))) for b, p, curPlayer in trainExamples]
+        return [(b, p, r*((-1)**(curPlayer!=self.curPlayer))) for b, p, curPlayer in trainExamples]
 
     def learn(self):
         """

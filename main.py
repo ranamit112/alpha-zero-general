@@ -16,6 +16,11 @@ args = dotdict({
     'numMCTSSims': 25,
     'arenaCompare': 40,
     'cpuct': 1,
+    #'epsilon': 0.25,
+    #'dirAlpha': (10.0/35)/0.4,  # (want 10 moves / 35 valid moves average) / 0.4 move packing efficiency
+    #'dirAlpha': (10.0/35),  # (want 10 moves / 35 valid moves average)
+    'epsilon': 0,
+    'dirAlpha': 0,
     'maxMCTSMoveDepth': 32,
     'checkpoint': './temp/',
     'load_model': False,
