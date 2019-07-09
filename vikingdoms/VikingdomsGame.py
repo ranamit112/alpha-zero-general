@@ -6,6 +6,7 @@ from .VikingdomsLogic import Board, BoardNumpyUtil
 import numpy as np
 import copy
 
+
 class VikingdomsGame(Game):
     """
     Implement Vikingdoms (https://boardgamegeek.com/boardgame/206780/vikingdoms)
@@ -106,7 +107,6 @@ class VikingdomsGame(Game):
         return l
 
     def stringRepresentation(self, board: Board) -> bytes:
-        #board.display()
         return board.to_string_representation()
 
     def encode_multiple(self, boards: [Board]) -> np.ndarray:

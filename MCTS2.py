@@ -44,6 +44,9 @@ class Node:
         if self.mcts.Es[self.id] != 0:
             return self.mcts.Es[self.id]  # terminal node
         probs, v = self.mcts.nnet.predict(self.board)
+        if isinstance(v, np.ndarray):
+            assert len(v) == 1
+            v = v[0]
         valids = self.getValids(player)
         probs = np.multiply(probs, valids, dtype=probs.dtype)  # masking invalid moves
         sum_Ps_s = np.sum(probs)
@@ -131,6 +134,7 @@ class MCTS2:
         self.nnet = nnet
         self.args = args
         self.tree = {}
+        self.first_root = None
         self.root = None
         self.Es = {}
 
@@ -174,6 +178,8 @@ class MCTS2:
             currentNode = Node(self, canonicalBoard, ident)
             self.addNode(currentNode, ident)
         self.root = currentNode
+        if self.first_root is None:
+            self.first_root = self.root
         currentNode.expand(1)
         return currentNode
 

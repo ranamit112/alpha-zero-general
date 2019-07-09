@@ -1,6 +1,6 @@
-import math
 import numpy as np
 import copy
+
 
 class Board():
     """
@@ -22,13 +22,13 @@ class Board():
     x is the column, y is the row. (-1,-1) is considered out-of-board
     Move data - tuple of (number_of_pieces, from_position, to_position)
     """
+
     WIN_TOWER = 6
 
     def __init__(self, n, position=None, pieces_left=None, last_move=None):
         """Set up initial board configuration."""
 
         self.n = n
-        self.start_pieces = n * ((n//2)+1)  # 12 for 4*4, 15 for 5*5
         if position is None:
             # Create the empty board array.
             self.position = np.zeros(shape=(n, n, Board.WIN_TOWER), dtype=np.int8)
@@ -39,6 +39,10 @@ class Board():
             self.position = position
             self.pieces_left = pieces_left
             self.last_move = last_move
+
+    @property
+    def start_pieces(self):
+        return self.n * ((self.n // 2) + 1)  # 12 for 4*4, 15 for 5*5
 
     def __copy__(self):
         return Board(self.n, np.copy(self.position), self.pieces_left.copy(), self.last_move)
@@ -225,10 +229,65 @@ class Board():
             move = np.array([self.last_move[1][0], self.last_move[1][1], self.last_move[2][0], self.last_move[2][1]], dtype=np.int8).tostring()
         return bs+pls+move
 
-    def display(self):
+    def debug_display(self):
         s = self.to_string_representation()
         print(np.reshape([int(i) for i in s[:self.n*self.n]], (self.n, self.n)))
         print("left {},{}".format(self.pieces_left[0], self.pieces_left[1]))
+
+    def display(self):
+
+        def piece_display(piece: np.array):
+            PRINT_MAP = {0: ' ', 1: '●', -1: '○'}
+            return PRINT_MAP.get(piece, ' ')
+
+        import beautifultable
+        table = beautifultable.BeautifulTable()
+
+        for x in range(self.n):
+            table.insert_row(x, ['\n'.join(reversed(list(map(piece_display, self.position[x, y])))) for y in range(self.n)])
+
+        table.column_headers = DisplayRowNotation.get_row_names(self.n)
+        column_names = DisplayRowNotation.get_column_names(self.n)
+        if column_names:
+            table.insert_column(0, '', column_names)
+        table.set_style(beautifultable.STYLE_BOX)
+        print(table)
+        print("")
+        print("{} x ●, {} x ○".format(self.pieces_left[1], self.pieces_left[0]))
+
+
+class DisplayRowNotation:
+    NO_NOTATION = 0
+    EXCEL_NOTATION = 1
+    CHESS_NOTATION = 2
+
+    @staticmethod
+    def get_row_names(n):
+        if DISPLAY_NOTATION in [DisplayRowNotation.EXCEL_NOTATION, DisplayRowNotation.CHESS_NOTATION]:
+            return [chr(ord('A') + i) for i in range(n)]
+        #elif DISPLAY_NOTATION == DisplayRowNotation.CHESS_NOTATION:
+        #    return [i + 1 for i in range(n)]
+        return None
+
+    @staticmethod
+    def get_column_names(n):
+        if DISPLAY_NOTATION == DisplayRowNotation.EXCEL_NOTATION:
+            return [i + 1 for i in range(n)]
+        elif DISPLAY_NOTATION == DisplayRowNotation.CHESS_NOTATION:
+            return [n - i for i in range(n)]
+        return None
+
+    @staticmethod
+    def get_position(n, x, y):
+        if DISPLAY_NOTATION == DisplayRowNotation.EXCEL_NOTATION:
+            return "{}{}".format(chr(ord('A') + x), y+1)
+        elif DISPLAY_NOTATION == DisplayRowNotation.CHESS_NOTATION:
+            return "{}{}".format(chr(ord('A') + x), n-y)
+        return "{},{}".format(x, y)
+
+
+DISPLAY_NOTATION = DisplayRowNotation.EXCEL_NOTATION
+
 
 class BoardNumpyUtil():
     @staticmethod
