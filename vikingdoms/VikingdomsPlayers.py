@@ -25,17 +25,18 @@ class HumanVikingdomsPlayer:
         for i in range(len(valids)):
             if valids[i]:
                 move = BoardNumpyUtil.move_from_numpy_val(self.game.n, i)
+                move_height, (x, y), (x2, y2) = move
                 if i == len(valids) - 1:
                     print("{}: Skip".format(i))
                 elif i < n**2:
                     print("{}: Place piece in {}".format(
                         i,
-                        DisplayRowNotation.get_position(self.game.n, move[2][1], move[2][0])))
+                        DisplayRowNotation.get_position(self.game.n, x2, y2)))
                 else:
                     print("{}: Move {} pieces from {} to {}".format(
-                        i, move[0],
-                        DisplayRowNotation.get_position(self.game.n, move[1][1], move[1][0]),
-                        DisplayRowNotation.get_position(self.game.n, move[2][1], move[2][0])))
+                        i, move_height,
+                        DisplayRowNotation.get_position(self.game.n, x, y),
+                        DisplayRowNotation.get_position(self.game.n, x2, y2)))
         while True:
             print("Enter selection: ", end='')
             inp = input()

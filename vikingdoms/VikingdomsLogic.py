@@ -243,8 +243,8 @@ class Board():
         import beautifultable
         table = beautifultable.BeautifulTable()
 
-        for x in range(self.n):
-            table.insert_row(x, ['\n'.join(reversed(list(map(piece_display, self.position[x, y])))) for y in range(self.n)])
+        for y in range(self.n):
+            table.insert_row(y, ['\n'.join(reversed(list(map(piece_display, self.position[x, y])))) for x in range(self.n)])
 
         table.column_headers = DisplayRowNotation.get_row_names(self.n)
         column_names = DisplayRowNotation.get_column_names(self.n)
