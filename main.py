@@ -2,6 +2,7 @@ from Coach import Coach
 from othello.OthelloGame import OthelloGame as Game
 from othello.pytorch.NNet import NNetWrapper as nn
 from utils import *
+import cProfile, pstats
 
 args = dotdict({
     'numIters': 1000,
@@ -17,20 +18,31 @@ args = dotdict({
     'maxMCTSMoveDepth': 32,
     'checkpoint': './temp/',
     'load_model': False,
-    'load_folder_file': ('/dev/models/8x100x50','best.pth.tar'),
+    'load_folder_file': ('temp','best.pth.tar'),
     'numItersForTrainExamplesHistory': 20,
-
 })
 
+ENABLE_PROFILE = False
+
 if __name__=="__main__":
-    g = Game(6)
-    nnet = nn(g)
+    pr = cProfile.Profile()
+    try:
+        if ENABLE_PROFILE:
+            pr.enable()
 
-    if args.load_model:
-        nnet.load_checkpoint(args.load_folder_file[0], args.load_folder_file[1])
+        g = Game(6)
+        nnet = nn(g)
 
-    c = Coach(g, nnet, args)
-    if args.load_model:
-        print("Load trainExamples from file")
-        c.loadTrainExamples()
-    c.learn()
+        if args.load_model:
+            nnet.load_checkpoint(args.load_folder_file[0], args.load_folder_file[1])
+
+        c = Coach(g, nnet, args)
+        if args.load_model:
+            print("Load trainExamples from file")
+            c.loadTrainExamples()
+        c.learn()
+    finally:
+        if ENABLE_PROFILE:
+            pr.disable()
+            ps = pstats.Stats(pr).sort_stats('cumulative')
+            ps.print_stats(50)
