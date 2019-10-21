@@ -43,23 +43,23 @@ class Coach():
         self.curPlayer = 1
         episodeStep = 0
 
-        while True:
+        r = 0
+        while r == 0:
             episodeStep += 1
-            canonicalBoard = self.game.getCanonicalForm(board,self.curPlayer)
+            canonicalBoard = self.game.getCanonicalForm(board, self.curPlayer)
             temp = int(episodeStep < self.args.tempThreshold)
 
             pi = self.mcts.getActionProb(canonicalBoard, temp=temp)
             sym = self.game.getSymmetries(canonicalBoard, pi)
             for b,p in sym:
-                trainExamples.append([b, self.curPlayer, p, None])
+                trainExamples.append([b, p, self.curPlayer])
 
             action = np.random.choice(len(pi), p=pi)
             board, self.curPlayer = self.game.getNextState(board, self.curPlayer, action)
 
             r = self.game.getGameEnded(board, self.curPlayer)
 
-            if r!=0:
-                return [(x[0],x[2],r*((-1)**(x[1]!=self.curPlayer))) for x in trainExamples]
+        return [(b, p, r*((-1)**(curPlayer!=self.curPlayer))) for b, p, curPlayer in trainExamples]
 
     def learn(self):
         """
@@ -114,7 +114,7 @@ class Coach():
             self.pnet.load_checkpoint(folder=self.args.checkpoint, filename='temp.pth.tar')
             pmcts = MCTS(self.game, self.pnet, self.args)
             
-            self.nnet.train(trainExamples)
+            self.nnet.train(trainExamples, iteration=i)
             nmcts = MCTS(self.game, self.nnet, self.args)
 
             print('PITTING AGAINST PREVIOUS VERSION')

@@ -12,7 +12,9 @@ args = dotdict({
     'numMCTSSims': 25,
     'arenaCompare': 40,
     'cpuct': 1,
-
+    'epsilon': 0,
+    'dirAlpha': 0,
+    'maxMCTSMoveDepth': 32,
     'checkpoint': './temp/',
     'load_model': False,
     'load_folder_file': ('/dev/models/8x100x50','best.pth.tar'),
