@@ -1,16 +1,16 @@
 from Coach import Coach
-from othello.OthelloGame import OthelloGame as Game
-from othello.pytorch.NNet import NNetWrapper as nn
-from utils import *
+from kamisado.KamisadoGame import KamisadoGame as Game
+from kamisado.keras.NNet import NNetWrapper as nn
+from utils import dotdict
 import cProfile, pstats
 
 args = dotdict({
     'numIters': 1000,
-    'numEps': 100,
+    'numEps': 500,
     'tempThreshold': 15,
     'updateThreshold': 0.6,
     'maxlenOfQueue': 200000,
-    'numMCTSSims': 25,
+    'numMCTSSims': 50,
     'arenaCompare': 40,
     'cpuct': 1,
     'epsilon': 0,
@@ -24,13 +24,13 @@ args = dotdict({
 
 ENABLE_PROFILE = False
 
-if __name__=="__main__":
+if __name__ == "__main__":
     pr = cProfile.Profile()
     try:
         if ENABLE_PROFILE:
             pr.enable()
 
-        g = Game(6)
+        g = Game()
         nnet = nn(g)
 
         if args.load_model:
