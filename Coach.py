@@ -51,7 +51,7 @@ class Coach():
 
             pi = self.mcts.getActionProb(canonicalBoard, temp=temp)
             sym = self.game.getSymmetries(canonicalBoard, pi)
-            for b,p in sym:
+            for b, p in sym:
                 trainExamples.append([b, p, self.curPlayer])
 
             action = np.random.choice(len(pi), p=pi)
@@ -59,7 +59,7 @@ class Coach():
 
             r = self.game.getGameEnded(board, self.curPlayer)
 
-        return [(b, p, r*((-1)**(curPlayer!=self.curPlayer))) for b, p, curPlayer in trainExamples]
+        return [(b, p, r*((-1)**(player != self.curPlayer))) for b, p, player in trainExamples]
 
     def learn(self):
         """

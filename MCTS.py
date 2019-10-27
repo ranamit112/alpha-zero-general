@@ -68,7 +68,7 @@ class MCTS():
 
         if s not in self.Es:
             self.Es[s] = self.game.getGameEnded(canonicalBoard, 1)
-        if self.Es[s]!=0:
+        if self.Es[s] != 0:
             # terminal node
             # print("Terminal Node, won={}", -self.Es[s])
             return -self.Es[s]
@@ -103,6 +103,7 @@ class MCTS():
             return 0
 
         valids = self.Vs[s]
+        noise = None
         e = self.args.epsilon if depth == 0 else 0
         if e > 0:
             noise = np.random.dirichlet(np.full(len(valids), self.args.dirAlpha))
@@ -121,13 +122,13 @@ class MCTS():
 
         v = self.search(next_s, depth=depth+1)
 
-        if (s,a) in self.Qsa:
-            self.Qsa[(s,a)] = (self.Nsa[(s,a)]*self.Qsa[(s,a)] + v)/(self.Nsa[(s,a)]+1)
-            self.Nsa[(s,a)] += 1
+        if (s, a) in self.Qsa:
+            self.Qsa[(s, a)] = (self.Nsa[(s, a)] * self.Qsa[(s, a)] + v) / (self.Nsa[(s, a)] + 1)
+            self.Nsa[(s, a)] += 1
 
         else:
-            self.Qsa[(s,a)] = v
-            self.Nsa[(s,a)] = 1
+            self.Qsa[(s, a)] = v
+            self.Nsa[(s, a)] = 1
 
         self.Ns[s] += 1
         return -v
