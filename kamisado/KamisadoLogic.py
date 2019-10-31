@@ -6,19 +6,19 @@ from enum import Enum
 
 #class Colors(Enum):
 NONE = -1
-ORANGE = 0
-BLUE = 1
-PURPLE = 2
-PINK = 3
-YELLOW = 4
-RED = 5
-GREEN = 6
-BROWN = 7
-NUM_COLORS = 8
 
 
-class Grid:
+class Grid8:
     N = 8
+    ORANGE = 0
+    BLUE = 1
+    PURPLE = 2
+    PINK = 3
+    YELLOW = 4
+    RED = 5
+    GREEN = 6
+    BROWN = 7
+    NUM_COLORS = 8
     colors = np.array(
         [[ORANGE, BLUE  , PURPLE, PINK  , YELLOW, RED   , GREEN , BROWN ],
          [RED   , ORANGE, PINK  , GREEN , BLUE  , YELLOW, BROWN , PURPLE],
@@ -28,6 +28,37 @@ class Grid:
          [BLUE  , YELLOW, BROWN , PURPLE, RED   , ORANGE, PINK  , GREEN ],
          [PURPLE, BROWN , YELLOW, BLUE  , GREEN , PINK  , ORANGE, RED   ],
          [BROWN , GREEN , RED   , YELLOW, PINK  , PURPLE, BLUE  , ORANGE]])
+
+
+class Grid6:
+    N = 6
+    ORANGE = 0
+    BLUE = 1
+    GREEN = 2
+    PURPLE = 3
+    YELLOW = 4
+    RED = 5
+    NUM_COLORS = 6
+    colors = np.array(
+        [[ORANGE, BLUE  , GREEN , PURPLE, YELLOW, RED   ],
+         [PURPLE, ORANGE, YELLOW, BLUE  , RED   , GREEN ],
+         [YELLOW, GREEN , ORANGE, RED   , PURPLE, BLUE  ],
+         [BLUE  , PURPLE, RED   , ORANGE, GREEN , YELLOW],
+         [GREEN , RED   , BLUE  , YELLOW, ORANGE, PURPLE],
+         [RED   , YELLOW, PURPLE, GREEN , BLUE  , ORANGE],
+         ])
+
+
+Grid: typing.Union[Grid6, Grid8, None] = None
+
+
+def set_grid(n: int):
+    assert n == 8 or n == 6
+    global Grid
+    if Grid is None:
+        Grid = Grid8 if n == 8 else Grid6
+    else:
+        raise RuntimeError("Double call to set_grid")
 
 
 class Board:
@@ -42,13 +73,15 @@ class Board:
 
     def __init__(self, pieces=None, last_move=None, last_color=NONE):
         """Set up initial board configuration."""
-
         if pieces is None:
             # Create the empty board array.
             # white is 1, black is -1 (or 0). White is bottom, going up. Black is on top, going down
+            #self.pieces = np.array(
+            #    [[[0, 0], [0, 1], [0, 2], [0, 3], [0, 4], [0, 5], [0, 6], [0, 7]],
+            #     [[7, 7], [7, 6], [7, 5], [7, 4], [7, 3], [7, 2], [7, 1], [7, 0]]], dtype=np.int8)
             self.pieces = np.array(
-                [[[0, 0], [0, 1], [0, 2], [0, 3], [0, 4], [0, 5], [0, 6], [0, 7]],
-                 [[7, 7], [7, 6], [7, 5], [7, 4], [7, 3], [7, 2], [7, 1], [7, 0]]], dtype=np.int8)
+                 [[[0, i] for i in range(Grid.N)],
+                  [[Grid.N - 1, i] for i in reversed(range(Grid.N))]], dtype=np.int8)
             self.last_piece_color = NONE
             self.last_move = None
         else:
@@ -73,7 +106,7 @@ class Board:
         #color_pos = 1 if color == 1 else 0
         if self.last_piece_color == NONE:  # starting position
             moves = list()  # stores the legal moves, from all pieces
-            for c in range(NUM_COLORS):
+            for c in range(Grid.NUM_COLORS):
                 moves.extend(self.get_moves_for_piece(player, c))
             return moves
         return self.get_moves_for_piece(player, self.last_piece_color)

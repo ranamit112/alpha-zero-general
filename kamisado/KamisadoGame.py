@@ -1,5 +1,5 @@
 from Game import Game
-from .KamisadoLogic import Board, Grid
+from .KamisadoLogic import Board, set_grid
 import numpy as np
 import copy
 
@@ -10,8 +10,10 @@ class KamisadoGame(Game):
     First Phase - Single Round, Standard Rules
     """
 
-    def __init__(self):
+    def __init__(self, board_size: int):
         super().__init__()
+        self.n = board_size
+        set_grid(board_size)  # this is not a pretty way to write this, but I'm lazy
 
     def getInitBoard(self) -> Board:
         # return initial board
@@ -21,17 +23,11 @@ class KamisadoGame(Game):
     def getBoardSize(self):
         return Board.encode_board_shape()
 
-    def getActionSize_old(self) -> int:
-        # return number of actions
-        # Move any piece in the board to any location, skip is included as an action of no movement
-        # since each piece is considered unique, the size is the number of pieces for each player*the board size
-        return Grid.N**3
-
     def getActionSize(self) -> int:
         # return number of actions
         # Move any piece in the board to any location, skip is included as an action of no movement
         # since each piece is considered unique, the size is the number of pieces for each player*the board size
-        return Grid.N*Grid.N*3
+        return self.n*self.n*3
 
     def getNextState(self, board: Board, player: int, action: int) -> (Board, int):
         # if player takes action on board, return next (board,player)
@@ -54,7 +50,7 @@ class KamisadoGame(Game):
     def getGameEnded(self, board: Board, player: int) -> int or float:
         won_color = 0
         # look at player position 0 (black) pieces, and if any of them is on top row they won
-        if (board.pieces[0, :, 0] == Grid.N - 1).any():
+        if (board.pieces[0, :, 0] == self.n - 1).any():
             won_color = -1
         # look at player position 1 (white) pieces, and if any of them is on bottom row they won
         elif (board.pieces[1, :, 0] == 0).any():

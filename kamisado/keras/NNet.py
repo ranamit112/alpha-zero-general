@@ -13,9 +13,9 @@ if not USE_CUDA:
     os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
 args = dotdict({
-    'lr': 0.01,
+    'lr': 0.003,
     'dropout': 0.3,
-    'epochs': 40,
+    'epochs': 100,
     'batch_size': 256,
     'cuda': USE_CUDA,
     'num_channels': 512,
@@ -81,7 +81,7 @@ class NNetWrapper(NeuralNet):
         tb = TensorBoard(log_dir="./logs/iter{}".format(iteration if iteration is not None else ""))
         es = EarlyStopping(monitor='loss', verbose=1, patience=3, restore_best_weights=True)
         checkpoint = ModelCheckpoint(os.path.join('./temp', 'checkpoint.temp.pth.tar'),
-                                     monitor='v_acc', verbose=1, save_weights_only=True)
+                                     monitor='v_acc', verbose=0, save_weights_only=True)
         callbacks_list = [tb, es, checkpoint]
         self.nnet.model.fit(x = input_boards, y = [target_pis, target_vs], batch_size = args.batch_size,
                             epochs=args.epochs, verbose=1, callbacks=callbacks_list)

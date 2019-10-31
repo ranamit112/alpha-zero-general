@@ -6,11 +6,11 @@ import cProfile, pstats
 
 args = dotdict({
     'numIters': 1000,
-    'numEps': 500,
+    'numEps': 100,
     'tempThreshold': 15,
     'updateThreshold': 0.6,
     'maxlenOfQueue': 200000,
-    'numMCTSSims': 50,
+    'numMCTSSims': 150,
     'arenaCompare': 40,
     'cpuct': 1,
     'epsilon': 0,
@@ -30,7 +30,7 @@ if __name__ == "__main__":
         if ENABLE_PROFILE:
             pr.enable()
 
-        g = Game()
+        g = Game(6)
         nnet = nn(g)
 
         if args.load_model:
