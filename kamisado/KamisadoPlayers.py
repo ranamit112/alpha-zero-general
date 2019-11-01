@@ -1,10 +1,11 @@
 import numpy as np
 import math
-from .VikingdomsGame import VikingdomsGame, Board, BoardNumpyUtil
-from .VikingdomsLogic import DisplayRowNotation
+from .KamisadoGame import KamisadoGame, Board
+from .KamisadoLogic import DisplayRowNotation
+
 
 class RandomPlayer:
-    def __init__(self, game: VikingdomsGame):
+    def __init__(self, game: KamisadoGame):
         self.game = game
 
     def play(self, board):
@@ -12,8 +13,8 @@ class RandomPlayer:
         return np.random.choice(np.flatnonzero(valids))
 
 
-class HumanVikingdomsPlayer:
-    def __init__(self, game: VikingdomsGame):
+class HumanPlayer:
+    def __init__(self, game: KamisadoGame):
         self.game = game
 
     def play(self, board):
@@ -24,7 +25,7 @@ class HumanVikingdomsPlayer:
         assert len(valids) == n**2 + (n**4)*5 + 1
         for i in range(len(valids)):
             if valids[i]:
-                move = BoardNumpyUtil.move_from_numpy_val(self.game.n, i)
+                move = Board.decode_move(i)
                 move_height, (x, y), (x2, y2) = move
                 if i == len(valids) - 1:
                     print("{}: Skip".format(i))
@@ -51,8 +52,8 @@ class HumanVikingdomsPlayer:
         return action
 
 
-class GreedyVikingdomsPlayer:
-    def __init__(self, game: VikingdomsGame):
+class GreedyPlayer:
+    def __init__(self, game: KamisadoGame):
         self.game = game
 
     def play(self, board: Board):
